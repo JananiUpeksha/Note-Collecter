@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @ToString
-public class userDTO implements SuperDTO {
+public class UserDTO implements SuperDTO {
     private String userId;
     private String firstName;
     private String lastName;

@@ -13,7 +13,7 @@ import java.util.List;
 @RestController//api end point ekak kiyla
 @RequestMapping("api/v1/notes")//api/-api end point ekak kiyla      v1/ - version maru weddi wens krnwa      /note - url eka resolve wena class eke name
 public class NoteController  {
-    @Autowired
+    @Autowired /*Interface ekak inject kranna*/
     private NoteService noteService;/*run time ekedi impl class eka provid krnwa*/
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,produces = MediaType.APPLICATION_JSON_VALUE)/*json ob eka java ob ekakata map krnna one*/
     public NoteDTO saveNote(@RequestBody NoteDTO noteDTO){
