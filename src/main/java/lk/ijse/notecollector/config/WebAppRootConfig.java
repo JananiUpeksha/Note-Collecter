@@ -1,6 +1,7 @@
 package lk.ijse.notecollector.config;
 
 import jakarta.persistence.EntityManagerFactory;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,11 +17,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-@EnableJpaRepositories/*JPA project ekaka full power eka gnna*/
+@EnableJpaRepositories(basePackages = "lk.ijse.notecollector.dao")/*JPA project ekaka full power eka gnna*/
 @EnableTransactionManagement
 @Configuration
 @ComponentScan(basePackages = "lk.ijse.notecollector")
 public class WebAppRootConfig {
+    @Bean
+    public ModelMapper modelMapper(){
+        return new ModelMapper();
+    }
     @Bean
     public DataSource dataSource() {
         var dmds = new DriverManagerDataSource();
