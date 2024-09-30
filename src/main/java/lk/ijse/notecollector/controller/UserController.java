@@ -1,9 +1,11 @@
 package lk.ijse.notecollector.controller;
 
+import lk.ijse.notecollector.customStatusCode.SelectedUserErrorStatus;
+import lk.ijse.notecollector.dto.UserStatus;
 import lk.ijse.notecollector.dto.impl.UserDTO;
 import lk.ijse.notecollector.exception.DataPersistException;
+import lk.ijse.notecollector.exception.UserNotFoundException;
 import lk.ijse.notecollector.service.UserService;
-import lk.ijse.notecollector.service.UserServiceImpl;
 import lk.ijse.notecollector.utill.AppUtill;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("api/v1/user")
@@ -54,7 +56,14 @@ public class UserController {
         }
     }
     @GetMapping(value = "/{userId}",produces = MediaType.APPLICATION_JSON_VALUE)/*http://localhost:8080/api/v1/user/USER-7bc4d5d5-e938-4bca-af52-74a9849bae0b*/
-    public UserDTO getSelectedUser(@PathVariable("userId") String userId){
+    public UserStatus getSelectedUser(@PathVariable("userId") String userId){
+        String regexForUserID = "^USER-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
+        Pattern regexPattern = Pattern.compile(regexForUserID);
+        var regexMatcher = regexPattern.matcher(userId);
+
+        if(!regexMatcher.matches()){
+            return new SelectedUserErrorStatus(1,"User ID is not valid");
+        }
         return userService.getUser(userId);
     }
 
@@ -65,8 +74,23 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(value = "/{userId}")
-    public void deleteUser(@PathVariable("userId") String userId){
-        userService.deleteUser(userId);
+    public ResponseEntity<Void> deleteUser(@PathVariable("userId") String userId){
+        String regexForUserID = "^USER-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
+        Pattern regexPattern = Pattern.compile(regexForUserID);
+        var regexMatcher = regexPattern.matcher(userId);
+        try {
+            if(!regexMatcher.matches()){
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            userService.deleteUser(userId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }catch (UserNotFoundException e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<UserDTO> getAllUsers(){

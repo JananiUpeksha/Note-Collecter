@@ -1,13 +1,26 @@
 package lk.ijse.notecollector.service;
 
+import lk.ijse.notecollector.customStatusCode.SelectedNoteErrorStatus;
+import lk.ijse.notecollector.dao.NoteDAO;
+import lk.ijse.notecollector.dto.NoteStatus;
 import lk.ijse.notecollector.dto.impl.NoteDTO;
+import lk.ijse.notecollector.entity.impl.NoteEntity;
+import lk.ijse.notecollector.exception.DataPersistException;
 import lk.ijse.notecollector.utill.AppUtill;
+import lk.ijse.notecollector.utill.Mapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 @Service/*@comonent meta anotate krla thiynwa methnath meke sservice class wla functions thiynwa ethkota thma eya spring wlin mng krnne*/
+@Transactional
 public class NoteServiceImpl implements NoteService{
+    @Autowired
+    private NoteDAO noteDAO;
+    @Autowired
+    private Mapping mapping;
     private static List<NoteDTO> noteDTOList = new ArrayList<>();
     public NoteServiceImpl(){
         noteDTOList.add(new NoteDTO("NOTE-b9a081bb-d861-49d6-a655-02a898231cbb","Title1","desc1",
@@ -20,9 +33,14 @@ public class NoteServiceImpl implements NoteService{
                 "date","level4","userid4"));
     }
     @Override
-    public NoteDTO saveNote(NoteDTO noteDTO) {
+    public void saveNote(NoteDTO noteDTO) {
         noteDTO.setNoteId(AppUtill.generateNoteId());
-        return noteDTO;
+        NoteEntity savedNote =
+                noteDAO.save(mapping.toNoteEntity(noteDTO));
+        if(savedNote == null){
+            throw new DataPersistException("Note not saved");
+        }
+
     }
 
     @Override
@@ -31,8 +49,13 @@ public class NoteServiceImpl implements NoteService{
     }
 
     @Override
-    public NoteDTO getNote(String noteId) {
-        return null;
+    public NoteStatus getNote(String noteId) {
+        if(noteDAO.existsById(noteId)){
+            var selectedUser = noteDAO.getReferenceById(noteId);
+            return mapping.toNoteDTO(selectedUser);
+        }else {
+            return new SelectedNoteErrorStatus(2,"Selected note not found");
+        }
     }
 
     @Override

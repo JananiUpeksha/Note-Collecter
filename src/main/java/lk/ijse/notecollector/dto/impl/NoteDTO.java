@@ -1,5 +1,6 @@
 package lk.ijse.notecollector.dto.impl;
 
+import lk.ijse.notecollector.dto.NoteStatus;
 import lk.ijse.notecollector.dto.SuperDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @AllArgsConstructor@NoArgsConstructor@Data@ToString
-public class NoteDTO implements SuperDTO {
+public class NoteDTO implements NoteStatus {
     private String noteId;
     private String noteTitle;
     private String noteDesc;

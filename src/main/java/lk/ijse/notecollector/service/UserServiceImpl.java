@@ -1,9 +1,12 @@
 package lk.ijse.notecollector.service;
 
+import lk.ijse.notecollector.customStatusCode.SelectedUserErrorStatus;
 import lk.ijse.notecollector.dao.UserDAO;
+import lk.ijse.notecollector.dto.UserStatus;
 import lk.ijse.notecollector.dto.impl.UserDTO;
 import lk.ijse.notecollector.entity.impl.UserEntity;
 import lk.ijse.notecollector.exception.DataPersistException;
+import lk.ijse.notecollector.exception.UserNotFoundException;
 import lk.ijse.notecollector.utill.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,15 +41,24 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public UserDTO getUser(String userId) {
-        UserEntity selectedUser = userDAO.getReferenceById(userId);
-        return mapping.toUserDTO(selectedUser);
+    public UserStatus getUser(String userId) {
+        if(userDAO.existsById(userId)){
+            UserEntity selectedUser = userDAO.getReferenceById(userId);
+            return mapping.toUserDTO(selectedUser);
+        }else {
+            return new SelectedUserErrorStatus(2, "User with id " + userId + " not found");
+        }
 
     }
 
     @Override
-    public void deleteUser(String userID) {
-        userDAO.deleteById(userID);
+    public void deleteUser(String userId) {
+        Optional<UserEntity> existedUser = userDAO.findById(userId);
+        if(!existedUser.isPresent()){
+            throw new UserNotFoundException("User with id " + userId + " not found");
+        }else {
+            userDAO.deleteById(userId);
+        }
     }
 
     @Override
