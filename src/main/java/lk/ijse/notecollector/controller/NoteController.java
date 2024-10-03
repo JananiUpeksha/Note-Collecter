@@ -4,7 +4,9 @@ import lk.ijse.notecollector.customStatusCode.SelectedNoteErrorStatus;
 import lk.ijse.notecollector.dto.NoteStatus;
 import lk.ijse.notecollector.dto.impl.NoteDTO;
 import lk.ijse.notecollector.exception.DataPersistException;
+import lk.ijse.notecollector.exception.NoteNotFoundException;
 import lk.ijse.notecollector.service.NoteService;
+import lk.ijse.notecollector.utill.RegexProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,8 +30,10 @@ public class NoteController  {
                 noteService.saveNote(noteDTO);
                 return new ResponseEntity<>(HttpStatus.CREATED);
             }catch (DataPersistException e){
+                e.printStackTrace();
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }catch (Exception e){
+                e.printStackTrace();
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
@@ -46,12 +50,57 @@ public class NoteController  {
     }
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<NoteDTO> getAllNote(){
-        return null;
+        return noteService.getAllNotes();
     }
-    public void deleteNote(String noteId){
-
+    @DeleteMapping(value = "/{noteId}")
+    public ResponseEntity<Void> deleteNote(@PathVariable("noteId") String noteId){
+        /*String regexForUserID = "^NOTE-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
+        Pattern regexPattern = Pattern.compile(regexForUserID);
+        var regexMatcher = regexPattern.matcher(noteId);
+        try {
+            if (!regexMatcher.matches()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            noteService.deleteNote(noteId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }catch (NoteNotFoundException e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }*/
+        try {
+            if (!RegexProcess.noteIdMatcher(noteId)) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            noteService.deleteNote(noteId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }catch (NoteNotFoundException e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    public void updateNote(String noteId,NoteDTO noteDTO){
-
+    @PutMapping(value = "/{noteId}")
+    public ResponseEntity<Void> updateNote(@PathVariable("noteId") String noteId,@RequestBody NoteDTO updateNoteDTO){
+        String regexForUserID = "^NOTE-[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$";
+        Pattern regexPattern = Pattern.compile(regexForUserID);
+        var regexMatcher = regexPattern.matcher(noteId);
+        try {
+            if (!regexMatcher.matches() || updateNoteDTO == null) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            noteService.updateNote(noteId, updateNoteDTO);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NoteNotFoundException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
